@@ -749,25 +749,25 @@ _CHUNK_SCAN_BWD_DX_MIN_BLOCK_N = min(
 
 
 # Disabling HAS_DDA_CS for now since it's much slower
-@triton.autotune(
-    configs=autotune_configs([
-        triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 128}, num_stages=3, num_warps=4),
-        triton.Config({'BLOCK_SIZE_M': 128, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
-        triton.Config({'BLOCK_SIZE_M': 64, 'BLOCK_SIZE_N': 64}, num_stages=3, num_warps=4),
-        triton.Config({'BLOCK_SIZE_M': 64, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
-        triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 64}, num_stages=3, num_warps=4),
-        triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
-        # triton.Config({'BLOCK_SIZE_M': 16}, num_stages=3, num_warps=4),
-        # triton.Config({'BLOCK_SIZE_M': 32}, num_stages=3, num_warps=4),
-        # triton.Config({'BLOCK_SIZE_M': 64}, num_stages=3, num_warps=4),
-        # triton.Config({'BLOCK_SIZE_M': 128}, num_stages=3, num_warps=4),
-        # triton.Config({'BLOCK_SIZE_M': 16}, num_stages=4, num_warps=8),
-        # triton.Config({'BLOCK_SIZE_M': 32}, num_stages=4, num_warps=8),
-        # triton.Config({'BLOCK_SIZE_M': 64}, num_stages=4, num_warps=8),
-        # triton.Config({'BLOCK_SIZE_M': 128}, num_stages=4, num_warps=8),
-    ]),
-    key=['chunk_size', 'hdim'],
-)
+# @triton.autotune(
+#     configs=autotune_configs([
+#         triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 128}, num_stages=3, num_warps=4),
+#         triton.Config({'BLOCK_SIZE_M': 128, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
+#         triton.Config({'BLOCK_SIZE_M': 64, 'BLOCK_SIZE_N': 64}, num_stages=3, num_warps=4),
+#         triton.Config({'BLOCK_SIZE_M': 64, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
+#         triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 64}, num_stages=3, num_warps=4),
+#         triton.Config({'BLOCK_SIZE_M': 32, 'BLOCK_SIZE_N': 32}, num_stages=3, num_warps=4),
+#         # triton.Config({'BLOCK_SIZE_M': 16}, num_stages=3, num_warps=4),
+#         # triton.Config({'BLOCK_SIZE_M': 32}, num_stages=3, num_warps=4),
+#         # triton.Config({'BLOCK_SIZE_M': 64}, num_stages=3, num_warps=4),
+#         # triton.Config({'BLOCK_SIZE_M': 128}, num_stages=3, num_warps=4),
+#         # triton.Config({'BLOCK_SIZE_M': 16}, num_stages=4, num_warps=8),
+#         # triton.Config({'BLOCK_SIZE_M': 32}, num_stages=4, num_warps=8),
+#         # triton.Config({'BLOCK_SIZE_M': 64}, num_stages=4, num_warps=8),
+#         # triton.Config({'BLOCK_SIZE_M': 128}, num_stages=4, num_warps=8),
+#     ]),
+#     key=['chunk_size', 'hdim'],
+# )
 # @triton.heuristics({"BLOCK_SIZE_N": lambda args: max(triton.next_power_of_2(args["chunk_size"]), 16)})
 # @triton.heuristics({"BLOCK_SIZE_N": lambda args: 32})
 @triton.jit
@@ -1553,6 +1553,8 @@ def _chunk_scan_bwd_dcb(x, dt, dA_cumsum, dout, seq_idx=None, CB=None, ngroups=1
             HAS_DDA_CS=ddA_cumsum is not None,
             HAS_SEQ_IDX=seq_idx is not None,
             BLOCK_SIZE_K=max(triton.next_power_of_2(headdim), 16),
+            BLOCK_SIZE_M=64,
+            BLOCK_SIZE_N=64,
         )
     dcb = dcb.sum(2)
     if ddA_cumsum is not None:
