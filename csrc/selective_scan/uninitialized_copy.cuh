@@ -34,9 +34,12 @@
 #else
     #include <hipcub/hipcub.hpp>
     // Map ::cuda::std to the standard std namespace
+    #include <rocm-core/rocm_version.h>
+    #if ROCM_VERSION_MAJOR < 10
     namespace cuda {
         namespace std = ::std;
     }
+#endif
 #endif
 
 
