@@ -33,10 +33,14 @@
     #include <cuda/std/type_traits>
 #else
     #include <hipcub/hipcub.hpp>
-    // Map ::cuda::std to the standard std namespace
+    // Map ::cuda::std to the standard std namespace.
+    // Skip this on ROCm SDKs that already ship their own cuda/std headers
+    // (libhipcxx), which already define cuda::std themselves.
+    #if !__has_include(<cuda/std/type_traits>)
     namespace cuda {
         namespace std = ::std;
     }
+    #endif
 #endif
 
 
